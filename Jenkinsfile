@@ -4,31 +4,31 @@ pipeline {
     stages {
         stage("Build") {
             steps {
-                // Build the Docker image on Windows
+                // Build the Docker image on the Windows host
                 bat "docker build -t task-tracker:latest ."
             }
         }
         stage("Test") {
             steps {
-                // Run pytest inside a temporary container on Windows
+                // Run pytest inside the Linux-based container
                 bat """
                   docker run --rm task-tracker:latest ^
-                    cmd /c "pip install pytest && pytest --maxfail=1 -q"
+                    /bin/sh -c "pip install pytest && pytest --maxfail=1 -q"
                 """
             }
         }
         stage("Code Quality") {
             steps {
-                // Run flake8 inside a temporary container on Windows
+                // Run flake8 inside the Linux-based container
                 bat """
                   docker run --rm task-tracker:latest ^
-                    cmd /c "pip install flake8 && flake8 ."
+                    /bin/sh -c "pip install flake8 && flake8 ."
                 """
             }
         }
         stage("Deploy") {
             steps {
-                // Remove any old container, then run a new one (Windows syntax)
+                // Remove any old container, then run a new one
                 bat """
                   docker rm -f task-tracker || echo Container not found^>nul
                   docker run -d --name task-tracker -p 5000:5000 task-tracker:latest
