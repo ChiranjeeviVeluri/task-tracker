@@ -11,7 +11,7 @@ pipeline {
             steps {
                 bat """
                   docker run --rm task-tracker:latest ^
-                    /bin/sh -c "pip install pytest && pytest tests --maxfail=1 -q"
+                    /bin/sh -c "pip install pytest && export PYTHONPATH=/app && pytest tests --maxfail=1 -q"
                 """
             }
         }
