@@ -9,10 +9,7 @@ app = Flask(__name__)
 
 
 # Initial hard-coded tasks (converted from JSON to Python):
-tasks = [
-    { "id": 1, "title": "Buy groceries",  "completed": False },
-    { "id": 2, "title": "Finish report",  "completed": True  }
-]
+tasks = []
 
 
 
