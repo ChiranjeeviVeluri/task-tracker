@@ -5,7 +5,15 @@ app = Flask(__name__)
 
 
 # In-memory list to store tasks
-tasks = []
+# app.py
+
+
+# Initial hard-coded tasks (converted from JSON to Python):
+tasks = [
+    { "id": 1, "title": "Buy groceries",  "completed": False },
+    { "id": 2, "title": "Finish report",  "completed": True  }
+]
+
 
 
 @app.route("/tasks", methods=["GET"])
