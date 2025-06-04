@@ -2,69 +2,55 @@ pipeline {
     agent any
 
     stages {
-        stage("Build") {
+        stage('Declarative: Checkout SCM') {
             steps {
-                bat "docker build -t task-tracker:latest ."
+                checkout scm
             }
         }
-        stage("Test") {
+
+        stage('Build') {
             steps {
-                bat """
-                  docker run --rm task-tracker:latest ^
-                    /bin/sh -c "pip install pytest && export PYTHONPATH=/app && pytest tests --maxfail=1 -q"
-                """
+                bat 'docker build -t task-tracker:latest .'
             }
         }
-        stage("Code Quality") {
+
+        stage('Test') {
             steps {
-                bat """
-                  docker run --rm task-tracker:latest ^
-                    /bin/sh -c "pip install flake8 && flake8 ."
-                """
+                bat '''
+                    docker run --rm task-tracker:latest /bin/sh -c "pip install pytest && export PYTHONPATH=/app && pytest tests --maxfail=1 -q"
+                '''.stripIndent()
             }
         }
-        stage("Deploy") {
+
+        stage('Code Quality') {
             steps {
-                bat """
-                  docker rm -f task-tracker || echo Container not found^>nul
-                  docker run -d --name task-tracker -p 5000:5000 task-tracker:latest
-                """
+                bat '''
+                    docker run --rm task-tracker:latest /bin/sh -c "pip install flake8 && flake8 ."
+                '''.stripIndent()
             }
         }
-        stage("Demo") {
+
+        stage('Deploy') {
             steps {
-                // Wait a moment for the container to be fully up
-                bat "timeout 3"
-                
-                // 1. Wake up at 6 am
-                bat "curl -X POST http://localhost:5000/tasks ^\n" +
-                    "-H \"Content-Type: application/json\" ^\n" +
-                    "-d \"{\\\"title\\\":\\\"Wake up at 6am\\\"}\""
-                
-                // 2. Go to gym
-                bat "curl -X POST http://localhost:5000/tasks ^\n" +
-                    "-H \"Content-Type: application/json\" ^\n" +
-                    "-d \"{\\\"title\\\":\\\"Go to gym\\\"}\""
-                
-                // 3. Study two chapters
-                bat "curl -X POST http://localhost:5000/tasks ^\n" +
-                    "-H \"Content-Type: application/json\" ^\n" +
-                    "-d \"{\\\"title\\\":\\\"Study two chapters\\\"}\""
-                
-                // 4. Do laundry
-                bat "curl -X POST http://localhost:5000/tasks ^\n" +
-                    "-H \"Content-Type: application/json\" ^\n" +
-                    "-d \"{\\\"title\\\":\\\"Do laundry\\\"}\""
-                
-                // Finally, GET the complete list of tasks
-                bat "curl http://localhost:5000/tasks"
+                bat 'docker rm -f task-tracker || echo Container not found>nul'
+                bat 'docker run -d --name task-tracker -p 5000:5000 task-tracker:latest'
+            }
+        }
+
+        stage('Demo') {
+            steps {
+                // pause for 3 seconds on Windows
+                bat 'timeout /t 3 /nobreak >nul'
+
+                // verify the app is running (adjust URL/port if needed)
+                bat 'curl http://localhost:5000 || echo "Unable to reach app on port 5000"'
             }
         }
     }
 
     post {
         always {
-            echo "Pipeline completed."
+            echo 'Pipeline completed.'
         }
     }
 }
