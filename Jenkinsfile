@@ -1,49 +1,40 @@
 pipeline {
     agent any
 
-    stages {
-        stage('Declarative: Checkout SCM') {
-            steps {
-                checkout scm
-            }
-        }
+    environment {
+        // (any environment variables if you had them; remove if none)
+    }
 
+    stages {
         stage('Build') {
             steps {
+                // Build the Docker image
                 bat 'docker build -t task-tracker:latest .'
             }
         }
 
         stage('Test') {
             steps {
-                bat '''
-                    docker run --rm task-tracker:latest /bin/sh -c "pip install pytest && export PYTHONPATH=/app && pytest tests --maxfail=1 -q"
-                '''.stripIndent()
+                // Run pytest inside a temporary container
+                bat '''docker run --rm task-tracker:latest ^
+    /bin/sh -c "pip install pytest && export PYTHONPATH=/app && pytest tests --maxfail=1 -q"'''
             }
         }
 
         stage('Code Quality') {
             steps {
-                bat '''
-                    docker run --rm task-tracker:latest /bin/sh -c "pip install flake8 && flake8 ."
-                '''.stripIndent()
+                // Run flake8 inside a temporary container
+                bat '''docker run --rm task-tracker:latest ^
+    /bin/sh -c "pip install flake8 && flake8 ."'''
             }
         }
 
         stage('Deploy') {
             steps {
-                bat 'docker rm -f task-tracker || echo Container not found >nul'
+                // Remove any existing container named task-tracker (ignore errors)
+                bat 'docker rm -f task-tracker || echo Container not found>nul'
+                // Start a new detached container on port 5000
                 bat 'docker run -d --name task-tracker -p 5000:5000 task-tracker:latest'
-            }
-        }
-
-        stage('Demo') {
-            steps {
-                // pause for ~3 seconds using PowerShell
-                bat 'powershell -Command "Start-Sleep -Seconds 3"'
-
-                // verify the app is running (adjust URL/port if needed)
-                bat 'curl http://localhost:5000 || echo "Unable to reach app on port 5000"'
             }
         }
     }
