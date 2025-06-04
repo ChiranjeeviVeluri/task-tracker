@@ -32,15 +32,15 @@ pipeline {
 
         stage('Deploy') {
             steps {
-                bat 'docker rm -f task-tracker || echo Container not found>nul'
+                bat 'docker rm -f task-tracker || echo Container not found >nul'
                 bat 'docker run -d --name task-tracker -p 5000:5000 task-tracker:latest'
             }
         }
 
         stage('Demo') {
             steps {
-                // pause for 3 seconds on Windows
-                bat 'timeout /t 3 /nobreak >nul'
+                // pause for ~3 seconds using PowerShell
+                bat 'powershell -Command "Start-Sleep -Seconds 3"'
 
                 // verify the app is running (adjust URL/port if needed)
                 bat 'curl http://localhost:5000 || echo "Unable to reach app on port 5000"'
