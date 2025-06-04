@@ -1,10 +1,6 @@
 pipeline {
     agent any
 
-    environment {
-        // (any environment variables if you had them; remove if none)
-    }
-
     stages {
         stage('Build') {
             steps {
